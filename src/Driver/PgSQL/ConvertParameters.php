@@ -8,6 +8,8 @@ use Doctrine\DBAL\SQL\Parser\Visitor;
 
 use function count;
 use function implode;
+use function ltrim;
+use function str_starts_with;
 
 final class ConvertParameters implements Visitor
 {
@@ -19,6 +21,14 @@ final class ConvertParameters implements Visitor
 
     public function acceptPositionalParameter(string $sql): void
     {
+        if (str_starts_with($sql, '$')) {
+            $position                      = (int) ltrim($sql, '$');
+            $this->parameterMap[$position] = $position;
+            $this->buffer[]                = $sql;
+
+            return;
+        }
+
         $position                      = count($this->parameterMap) + 1;
         $this->parameterMap[$position] = $position;
         $this->buffer[]                = '$' . $position;
